@@ -1,6 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// For GitHub Pages deployment, we'll make API key optional
+// Users can provide their own key via environment variable or it will gracefully fail
+const apiKey = process.env.API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const generateScoutReport = async (
   playerName: string,
@@ -8,6 +11,11 @@ export const generateScoutReport = async (
   manner: number,
   matches: number
 ): Promise<string> => {
+  // If no API key is configured, return a friendly message
+  if (!ai) {
+    return `⚽ Scout Report for ${playerName}: With ${skill.toFixed(1)}/5.0 skill and ${manner.toFixed(1)}/5.0 sportsmanship over ${matches} matches, this player shows great potential! (AI reports require a Gemini API key)`;
+  }
+
   try {
     const prompt = `
       You are a professional futsal scout. Write a short, energetic, and engaging 2-sentence scout report for a player named ${playerName}.
